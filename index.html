@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Location</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src=
+  "https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+      </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDoqjiiQSjaXwWZ8DDcg2NVGPRYoWBvs2w"></script>
+  <script>
+    const api= `d83c6f945e80334d24d941ce7ccc2bd8`;
+    
+    
+    function getUserIP() {
+      fetch('https://api.ipify.org?format=json')
+        .then(response => response.json())
+        .then(data => {
+          const ip = data.ip;
+          document.getElementById('ip-address').textContent = ip;
+        //   document.getElementById('get-location').disabled = false;
+        })
+        .catch(error => {
+          console.log('Error:', error);
+        });
+    }
+
+    // Get user location information on button click
+    function getLocation() {
+      const ip = document.getElementById('ip-address').innerText;
+      
+    //   const url = 'https://ipinfo.io/${ip}/geo';
+
+      fetch(`https://ipinfo.io/${ip}/json?token=3d335b2697c10e`,{method: "GET"})
+        .then(response => response.json())
+        .then(data => {
+        //    console.log(data);
+          const timezone= data.timezone;
+          const pincode = data.postal;
+        //   console.log(timezone);
+          const location = data.loc.split(',');
+        //   console.log(location);
+          const latitude = parseFloat(location[0]);
+          const longitude = parseFloat(location[1]);
+
+          // Show user location on Google Maps
+          const mapOptions = {
+            center: { lat: latitude, lng: longitude },
+            zoom: 10
+          };
+          const map = new google.maps.Map(document.getElementById('map'), mapOptions);
+          const marker = new google.maps.Marker({ position: mapOptions.center, map: map });
+
+          // Get user's local time
+
+
+
+                    function addZero(i) {
+            if (i < 10) {i = "0" + i}
+            return i;
+            }
+
+            const d = new Date();
+            let h = addZero(d.getHours());
+            let m = addZero(d.getMinutes());
+            let s = addZero(d.getSeconds());
+            let time = h + ":" + m + ":" + s;
+
+            document.getElementById("local-time").innerHTML = time;
+            document.getElementById("time-zone").innerHTML = timezone;
+            document.getElementById("postal").innerHTML = pincode;
+
+
+            let city = data.city;
+            document.getElementById('city').innerText=city;
+            let region = data.region;
+            document.getElementById('region').innerText=region;
+            let host = data.hostname;
+            document.getElementById('host').innerText=host;
+            let org = data.org;
+            document.getElementById('org').innerText=org;
+            // let lat = data.city;
+            document.getElementById('lat').innerText=latitude;
+            // let lon = data.city;
+            document.getElementById('lon').innerText=longitude;
+
+
+          // Get post offices by pincode
+          
+          const postOfficeUrl = `https://api.postalpincode.in/pincode/${pincode}`;
+
+          fetch(postOfficeUrl)
+            .then(response => response.json())
+            .then(data => {
+              const postOffices = data[0].PostOffice;
+            //   console.log(postOffices)
+              const postOfficeList = document.getElementById('post-offices');
+            //    console.log(postOfficeList)
+
+            document.getElementById("message"). innerText = postOffices.length;
+            // console.log(postOffices.length)
+
+              // Clear previous results
+              postOfficeList.innerHTML = '';
+
+
+              // Display post offices
+              postOffices.forEach(postOffice => {
+                
+                const listItem = document.createElement('div');
+                listItem.setAttribute('class',"postoffice")
+
+                listItem.innerHTML =`Name: ${postOffice.Name}<br>
+                Branch Type: ${postOffice.BranchType}<br>
+                Delivery Status: ${postOffice.DeliveryStatus}<br>
+                District: ${postOffice.District}<br>
+                Division: ${postOffice.Division}`
+                // const postOfficeList = document.getElementById('postOfficeList');
+                // listItem.textContent = postOffice.Name + ' (' + postOffice.BranchType + ')';
+                postOfficeList.appendChild(listItem);
+                
+                    // count++
+                
+              });
+            
+            })
+            .catch(error => {
+              console.log('Error:', error);
+            });
+            
+        })
+        .catch(error => {
+          console.log('Error:', error);
+        });
+    }
+
+    
+
+
+
+
+  </script>
+</head>
+<body onload="getUserIP()">
+  <center>
+    <h1>User Location -Accio Job</h1>
+  <p>My Public IP Address: <span id="ip-address"></span></p>
+  <button id="get-location" onclick="getLocation()">Get Location</button>
+  </center>
+
+  <nav id="info">
+    <ul>
+        <li><a href="#"><b>Latitude:</b> </a><span id="lat"></span></li>
+        <li><a href="#"><b>City:</b> </a><span id="city"></span></li>
+        <li><a href="#"><b>Organisation:</b> </a><span id="org"></span></li>
+
+        <li><a href="#"><b>Longitude:</b> </a><span id="lon"></span></li>
+        <li><a href="#"><b>Region:</b> </a><span id="region"></span></li>
+        <li><a href="#"><b>Hostname:</b> </a><span id="host"></span></li>
+        
+    </ul>
+</nav>
+  
+  <div id="map" style="width: 90vw; height: 500px;"></div>
+  <div>
+
+    <p><b>Local Time:</b> <span id="time-zone"></span></p>
+    <p> <b>Time Zone:</b> <span id="local-time"></span></p>
+    <p> <b>Pin code:</b> <span id="postal"></span></p>
+    <p> <b>Message:</b> Number of Pincode(s) Found:  <span id="message"></span></p>
+  
+
+  </div>
+  <h2>Post Offices</h2>
+  <input type="text" id="search-input" placeholder="Search...">
+  <div id="con">
+
+    <div id="post-offices"></div>
+  </div>
+
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDoqjiiQSjaXwWZ8DDcg2NVGPRYoWBvs2w"></script>
+    </body>
+</html>
